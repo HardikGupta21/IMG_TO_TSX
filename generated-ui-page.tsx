@@ -1,31 +1,29 @@
-// Generated Next.js Page Component
-// Place this file in: pages/generated-ui.tsx or app/generated-ui/page.tsx
-// Run with: npm run dev and visit /generated-ui
+'use client'; // This component uses client-side hooks like useState and useEffect
 
-escript
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-// --- Interfaces ---
-
-interface FeatureItemProps {
+// Interfaces for component props and data structures
+interface PricingFeature {
   text: string;
+  included: boolean;
 }
 
-interface PricingPlanProps {
-  name: string;
-  priceMonthly: number;
-  priceAnnually: number;
-  features: string[];
-  buttonText: string;
+interface PricingCardProps {
+  planName: string;
+  price: string;
+  priceDetails: string;
+  users: string;
+  features: PricingFeature[];
   isHighlighted?: boolean;
+  buttonText: string;
+  onButtonClick: () => void;
 }
 
-// --- Components ---
-
-const CheckmarkIcon: React.FC = () => (
+// Reusable Icon components (simple SVG for checkmark, X mark, and logo)
+const CheckIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 text-teal-400"
+    className={`h-5 w-5 flex-shrink-0 ${className}`}
     viewBox="0 0 20 20"
     fill="currentColor"
   >
@@ -37,309 +35,338 @@ const CheckmarkIcon: React.FC = () => (
   </svg>
 );
 
-const FeatureItem: React.FC<FeatureItemProps> = ({ text }) => (
-  <li className="flex items-center space-x-3">
-    <CheckmarkIcon />
-    <span className="text-gray-600">{text}</span>
-  </li>
+const XMarkIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={`h-5 w-5 flex-shrink-0 ${className}`}
+    viewBox="0 0 20 20"
+    fill="currentColor"
+  >
+    <path
+      fillRule="evenodd"
+      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+      clipRule="evenodd"
+    />
+  </svg>
 );
 
-const PricingCard: React.FC<PricingPlanProps> = ({
-  name,
-  priceMonthly,
-  priceAnnually,
+const LogoIcon: React.FC = () => (
+  <svg
+    className="h-8 w-8 text-blue-700"
+    fill="currentColor"
+    viewBox="0 0 20 20"
+  >
+    <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM5.553 7.646l-.707.707A1 1 0 005 9.06v1.88a1 1 0 00.707.954l.707.707A1 1 0 007 13.06v-1.88a1 1 0 00-.707-.954L5.553 9.646zm9.294 0l.707.707A1 1 0 0115 9.06v1.88a1 1 0 01-.707.954l-.707.707A1 1 0 0113 13.06v-1.88a1 1 0 01.707-.954zM10 5a1 1 0 00-1 1v8a1 1 0 102 0V6a1 1 0 00-1-1z" />
+  </svg>
+);
+
+// PricingCard Component - uses styles from the design system's 'components'
+const PricingCard: React.FC<PricingCardProps> = ({
+  planName,
+  price,
+  priceDetails,
+  users,
   features,
-  buttonText,
   isHighlighted = false,
+  buttonText,
+  onButtonClick,
 }) => {
-  const [isAnnual, setIsAnnual] = useState(false); // State to toggle between monthly/annually
+  // Apply design system component styles
+  const cardClass = isHighlighted
+    ? 'bg-blue-700 text-white p-6 rounded-xl shadow-lg border border-blue-700 scale-105 transform transition-all duration-300' // cardHighlighted
+    : 'bg-white p-6 rounded-xl shadow-md border border-gray-200 transition-all duration-300'; // card
 
-  const currentPrice = isAnnual ? priceAnnually : priceMonthly;
-  const pricePeriod = isAnnual ? '/year' : '/month';
-
-  const primaryBtnClass = "bg-blue-500 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
-  const secondaryBtnClass = "bg-teal-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50";
+  // Adjust text and icon colors based on highlight state
+  const headingColorClass = isHighlighted ? 'text-white' : 'text-gray-900';
+  const textColorClass = isHighlighted ? 'text-blue-100' : 'text-gray-600';
+  const featureCheckIconColor = isHighlighted ? 'text-blue-300' : 'text-blue-500';
+  const featureXIconColor = isHighlighted ? 'text-red-300' : 'text-gray-400';
+  
+  // Adjust button style for highlighted card
+  const buttonStyle = isHighlighted
+    ? 'bg-white text-blue-700 font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-100 transition-colors w-full' // Inverted button for highlighted card
+    : 'bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-800 transition-colors w-full'; // buttonPrimary
 
   return (
-    <div
-      className={`flex flex-col p-6 rounded-xl shadow-lg transition-all duration-300 ${
-        isHighlighted ? 'bg-blue-500 text-white transform scale-105' : 'bg-white text-gray-800'
-      }`}
-    >
-      <h3
-        className={`text-2xl font-bold mb-2 ${
-          isHighlighted ? 'text-white' : 'text-gray-900'
-        }`}
-      >
-        {name}
-      </h3>
-      <p
-        className={`mb-4 ${
-          isHighlighted ? 'text-blue-100' : 'text-gray-500'
-        }`}
-      >
-        {name} plan description.
-      </p>
-      <div className="flex items-baseline mb-6">
-        <span
-          className={`text-5xl font-extrabold ${
-            isHighlighted ? 'text-white' : 'text-gray-900'
-          }`}
-        >
-          ${currentPrice}
-        </span>
-        <span
-          className={`text-xl font-medium ${
-            isHighlighted ? 'text-blue-200' : 'text-gray-500'
-          }`}
-        >
-          {pricePeriod}
-        </span>
+    <div className={cardClass}>
+      <h3 className={`text-xl font-bold mb-2 ${headingColorClass}`}>{planName}</h3>
+      <p className={`text-5xl font-extrabold mb-2 ${headingColorClass}`}>{price}</p>
+      <p className={`text-sm mb-4 ${textColorClass}`}>{priceDetails}</p>
+      <div className={`mb-4 ${textColorClass}`}>
+        <span className="font-semibold">{users} users</span> included
       </div>
-      <ul className="flex-grow space-y-3 mb-8">
+
+      <ul className="mb-6 space-y-3">
         {features.map((feature, index) => (
-          <li key={index} className="flex items-center space-x-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 ${
-                isHighlighted ? 'text-white' : 'text-teal-400'
-              }`}
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span
-              className={`${isHighlighted ? 'text-blue-100' : 'text-gray-600'}`}
-            >
-              {feature}
-            </span>
+          <li key={index} className={`flex items-start ${textColorClass}`}>
+            {feature.included ? (
+              <CheckIcon className={featureCheckIconColor} />
+            ) : (
+              <XMarkIcon className={featureXIconColor} />
+            )}
+            <span>{feature.text}</span>
           </li>
         ))}
       </ul>
-      <button
-        onClick={() => alert(`Selected ${name} Plan!`)}
-        className={isHighlighted ? secondaryBtnClass : primaryBtnClass}
-      >
+
+      <button onClick={onButtonClick} className={buttonStyle}>
         {buttonText}
       </button>
     </div>
   );
 };
 
-const Header: React.FC = () => (
-  <header className="bg-white shadow-sm py-4">
-    <div className="container mx-auto px-6 flex justify-between items-center">
-      <div className="text-2xl font-bold text-gray-900">
-        My<span className="text-blue-500">Service</span>
-      </div>
-      <nav className="hidden md:flex space-x-8">
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Features
-        </a>
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Pricing
-        </a>
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Docs
-        </a>
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Contact
-        </a>
-      </nav>
-      <button className="hidden md:block bg-blue-500 text-white font-semibold py-2 px-5 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-        Sign Up
-      </button>
-      <div className="md:hidden">
-        <button className="text-gray-600 hover:text-blue-500">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </header>
-);
+// Main Page Component
+export default function Page() {
+  const [userCount, setUserCount] = useState<number>(250);
+  const sliderRef = useRef<HTMLInputElement>(null);
+  const sliderValueRef = useRef<HTMLDivElement>(null);
 
-const PricingSection: React.FC = () => {
-  const [users, setUsers] = useState<number>(500); // Simulate user count slider
+  const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUserCount(parseInt(event.target.value));
+  };
 
-  const pricingPlans: PricingPlanProps[] = [
+  // Effect to dynamically position the slider value label above the thumb
+  useEffect(() => {
+    if (sliderRef.current && sliderValueRef.current) {
+      const slider = sliderRef.current;
+      const valueSpan = sliderValueRef.current;
+
+      const min = parseFloat(slider.min || '0');
+      const max = parseFloat(slider.max || '100');
+      const val = parseFloat(slider.value);
+
+      // Get slider dimensions
+      const sliderWidth = slider.offsetWidth;
+      const thumbWidth = 16; // Width of the thumb as defined in Tailwind CSS for input[type="range"]
+
+      // Calculate the percentage of the value within the slider's range
+      const percentage = (val - min) / (max - min);
+
+      // Calculate the thumb's position relative to the slider's left edge
+      // This considers the track width (sliderWidth - thumbWidth) and centers the thumb.
+      const thumbPosition = (percentage * (sliderWidth - thumbWidth)) + (thumbWidth / 2);
+
+      // Apply the position to the value label
+      valueSpan.style.left = `${thumbPosition}px`;
+      valueSpan.style.transform = 'translateX(-50%)'; // Center the label above the thumb
+    }
+  }, [userCount]); // Recalculate position when userCount changes
+
+  // Sample pricing plan data
+  const pricingPlans = [
     {
-      name: 'Basic',
-      priceMonthly: 19,
-      priceAnnually: 199,
-      features: ['10 Users', 'Basic Features', 'Email Support', '5GB Storage'],
-      buttonText: 'Get Started',
+      planName: 'Basic',
+      price: '$19',
+      priceDetails: 'per month, billed annually',
+      users: 'Up to 10',
+      features: [
+        { text: 'Access to core features', included: true },
+        { text: 'Basic analytics', included: true },
+        { text: 'Email support', included: true },
+        { text: 'Custom branding', included: false },
+        { text: 'Priority support', included: false },
+        { text: 'API access', included: false },
+      ],
+      buttonText: 'Choose Basic',
+      isHighlighted: false,
     },
     {
-      name: 'Standard',
-      priceMonthly: 49,
-      priceAnnually: 499,
+      planName: 'Pro',
+      price: '$49',
+      priceDetails: 'per month, billed annually',
+      users: 'Up to 100',
       features: [
-        '50 Users',
-        'Advanced Features',
-        'Priority Email Support',
-        '50GB Storage',
-        'Custom Reports',
+        { text: 'All Basic features', included: true },
+        { text: 'Advanced analytics', included: true },
+        { text: 'Chat support', included: true },
+        { text: 'Custom branding', included: true },
+        { text: 'Priority support', included: false },
+        { text: 'API access', included: false },
       ],
-      buttonText: 'Get Started',
+      buttonText: 'Choose Pro',
+      isHighlighted: true, // This card will be highlighted
     },
     {
-      name: 'Pro',
-      priceMonthly: 99,
-      priceAnnually: 999,
+      planName: 'Business',
+      price: '$99',
+      priceDetails: 'per month, billed annually',
+      users: 'Up to 500',
       features: [
-        'Unlimited Users',
-        'All Features',
-        '24/7 Phone & Email Support',
-        'Unlimited Storage',
-        'Dedicated Account Manager',
-        'API Access',
+        { text: 'All Pro features', included: true },
+        { text: 'Dedicated account manager', included: true },
+        { text: '24/7 Phone support', included: true },
+        { text: 'Custom branding', included: true },
+        { text: 'Priority support', included: true },
+        { text: 'API access', included: false },
       ],
-      buttonText: 'Upgrade Now',
-      isHighlighted: true,
+      buttonText: 'Choose Business',
+      isHighlighted: false,
     },
     {
-      name: 'Enterprise',
-      priceMonthly: 299,
-      priceAnnually: 2999,
+      planName: 'Enterprise',
+      price: '$249',
+      priceDetails: 'per month, billed annually',
+      users: 'Unlimited',
       features: [
-        'Custom Users',
-        'All Pro Features',
-        'SLA Guaranteed Support',
-        'On-premise Deployment',
-        'Single Sign-On (SSO)',
-        'Custom Integrations',
+        { text: 'All Business features', included: true },
+        { text: 'Unlimited integrations', included: true },
+        { text: 'SLA guarantee', included: true },
+        { text: 'Custom branding', included: true },
+        { text: 'Priority support', included: true },
+        { text: 'API access', included: true },
       ],
-      buttonText: 'Contact Sales',
+      buttonText: 'Contact Us',
+      isHighlighted: false,
     },
   ];
 
-  return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-6 text-center">
-        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">
-          Simple, transparent pricing
-        </h2>
-        <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-          Choose the plan that's right for you and your team. Scale up or down
-          as your needs change.
-        </p>
+  const handleButtonClick = (planName: string) => {
+    alert(`Selected plan: ${planName}`);
+  };
 
-        {/* User Count Slider/Toggle */}
-        <div className="flex flex-col items-center mb-12">
-          <label htmlFor="user-count" className="text-lg font-medium text-gray-700 mb-2">
-            Users: {users}
-          </label>
-          <input
-            type="range"
-            id="user-count"
-            min="1"
-            max="1000"
-            step="1"
-            value={users}
-            onChange={(e) => setUsers(parseInt(e.target.value))}
-            className="w-full max-w-md h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg accent-blue-500"
-          />
-          <div className="flex justify-between w-full max-w-md text-sm text-gray-500 mt-2">
-            <span>1</span>
-            <span>1000+</span>
-          </div>
-        </div>
-
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {pricingPlans.map((plan) => (
-            <PricingCard key={plan.name} {...plan} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const NewsletterSection: React.FC = () => {
   const [email, setEmail] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Subscribing with email: ${email}`);
-    setEmail('');
+    alert(`Subscribing ${email} to newsletter!`);
+    setEmail(''); // Clear the input field
   };
 
   return (
-    <section className="bg-blue-500 py-16">
-      <div className="container mx-auto px-6 text-center">
-        <span className="inline-block bg-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
-          Newsletter
-        </span>
-        <h2 className="text-4xl font-extrabold text-white mb-4">
-          Stay up to date
-        </h2>
-        <p className="text-xl text-blue-100 mb-8 max-w-xl mx-auto">
-          Join our newsletter to get the latest features, updates, and news on
-          our product.
-        </p>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full sm:w-80 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button
-            type="submit"
-            className="bg-teal-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50 w-full sm:w-auto"
-          >
-            Subscribe
-          </button>
-        </form>
-      </div>
-    </section>
-  );
-};
-
-// --- Main Page Component ---
-
-const Home: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-white font-sans antialiased">
-      <Header />
-      <main>
-        <PricingSection />
-        <NewsletterSection />
-      </main>
-      {/* Optional: Add a simple footer */}
-      <footer className="bg-gray-800 text-white py-8 text-center">
-        <div className="container mx-auto px-6">
-          <p>&copy; {new Date().getFullYear()} MyService. All rights reserved.</p>
-          <div className="flex justify-center space-x-4 mt-4">
-            <a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a>
-            <a href="#" className="text-gray-400 hover:text-white">Terms of Service</a>
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+      {/* Header Section */}
+      <header className="py-6 border-b border-gray-100 shadow-sm">
+        <nav className="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+          <div className="flex items-center space-x-2">
+            <LogoIcon />
+            <span className="text-2xl font-bold text-gray-900">YourApp</span>
           </div>
+          <div className="hidden md:flex items-center space-x-6">
+            <a href="#" className="text-gray-600 hover:text-blue-700 transition-colors">Home</a>
+            <a href="#" className="text-gray-600 hover:text-blue-700 transition-colors">Features</a>
+            <a href="#" className="text-gray-600 hover:text-blue-700 transition-colors">Pricing</a>
+            <a href="#" className="text-gray-600 hover:text-blue-700 transition-colors">Blog</a>
+            <a href="#" className="text-gray-600 hover:text-blue-700 transition-colors">Contact</a>
+          </div>
+          {/* Using adapted buttonPrimary style */}
+          <button className="bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-800 transition-colors md:py-3 md:px-6">
+            Get Started
+          </button>
+        </nav>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-grow pt-16 pb-12 bg-gray-50">
+        {/* Hero Section with Heading and Slider */}
+        <section className="container mx-auto px-4 text-center max-w-3xl mb-12">
+          {/* Using heading1 style */}
+          <h1 className="text-gray-900 text-4xl font-extrabold leading-tight mb-4 md:text-5xl">
+            Flexible Pricing for Every Team
+          </h1>
+          {/* Using paragraph style */}
+          <p className="text-gray-600 text-lg leading-relaxed mb-8">
+            Choose the plan that best fits your needs. Scale up or down as your team grows.
+          </p>
+
+          {/* User Count Slider */}
+          {/* Uses card style for its container */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200 inline-block w-full max-w-xl">
+            <label htmlFor="user-slider" className="block text-gray-800 font-semibold mb-4 text-left">
+              Number of Users
+            </label>
+            <div className="relative mb-6 pb-2"> {/* Added pb-2 for label clearance */}
+              <input
+                type="range"
+                id="user-slider"
+                min="10"
+                max="1000"
+                step="10"
+                value={userCount}
+                onChange={handleSliderChange}
+                ref={sliderRef}
+                // Tailwind CSS for range input styling, including thumb and track
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
+                  [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-700 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:-mt-[6px] [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-gray-200 [&::-webkit-slider-runnable-track]:rounded-lg
+                  [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-blue-700 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-lg
+                  [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-gray-200 [&::-moz-range-track]:rounded-lg"
+              />
+              <div
+                ref={sliderValueRef}
+                className="absolute -top-7 text-sm font-medium text-blue-700 bg-blue-50 py-1 px-2 rounded-md shadow-sm transition-all duration-100 ease-out whitespace-nowrap"
+                // Initial inline style for positioning, refined by useEffect
+                style={{ left: `calc(${((userCount - 10) / (1000 - 10)) * 100}% )`, transform: 'translateX(-50%)' }}
+              >
+                {userCount} users
+              </div>
+            </div>
+            {/* Using paragraph style */}
+            <p className="text-gray-600 text-sm text-left">
+              Estimated monthly cost based on your user count.
+            </p>
+          </div>
+        </section>
+
+        {/* Pricing Cards Grid Section */}
+        <section className="container mx-auto px-4 max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {pricingPlans.map((plan, index) => (
+              <PricingCard
+                key={index}
+                planName={plan.planName}
+                price={plan.price}
+                priceDetails={plan.priceDetails}
+                users={plan.users}
+                features={plan.features}
+                isHighlighted={plan.isHighlighted}
+                buttonText={plan.buttonText}
+                onButtonClick={() => handleButtonClick(plan.planName)}
+              />
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {/* Newsletter / CTA Footer Section */}
+      {/* Uses light_gray background color from design system */}
+      <section className="py-16 px-4" style={{ backgroundColor: '#F8F8F8' }}>
+        <div className="container mx-auto text-center max-w-2xl">
+          {/* Using heading2 style */}
+          <h2 className="text-gray-800 text-3xl font-bold mb-4">
+            Join Our Newsletter
+          </h2>
+          {/* Using paragraph style */}
+          <p className="text-gray-600 text-base leading-relaxed mb-8">
+            Stay up-to-date with our latest features, blog posts, and exclusive offers.
+          </p>
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            {/* Using inputField style */}
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg py-3 px-4 text-gray-800 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-auto flex-grow"
+              required
+            />
+            {/* Using buttonPrimary style */}
+            <button
+              type="submit"
+              className="bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-800 transition-colors w-full sm:w-auto"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Simple Copyright Footer */}
+      <footer className="bg-gray-900 text-white py-8 text-center">
+        <div className="container mx-auto px-4 text-gray-400 text-sm">
+          &copy; {new Date().getFullYear()} YourApp. All rights reserved.
         </div>
       </footer>
     </div>
   );
-};
-
-export default Home;
+}
 

@@ -1,340 +1,274 @@
 escript
+'use client';
+
 import React, { useState } from 'react';
 
-// --- Interfaces ---
-
-interface FeatureItemProps {
-  text: string;
+// --- TypeScript Interfaces ---
+interface Feature {
+  id: string;
+  name: string;
 }
 
-interface PricingPlanProps {
+interface PricingPlan {
+  id: string;
   name: string;
-  priceMonthly: number;
-  priceAnnually: number;
-  features: string[];
-  buttonText: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  description: string;
+  features: Feature[];
   isHighlighted?: boolean;
 }
 
-// --- Components ---
-
+// --- Icon Component (for Checkmark) ---
+// This could be replaced with an actual SVG icon library like Heroicons
 const CheckmarkIcon: React.FC = () => (
   <svg
+    className="text-blue-600 w-5 h-5 inline-block align-middle mr-2"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 text-teal-400"
-    viewBox="0 0 20 20"
-    fill="currentColor"
   >
-    <path
-      fillRule="evenodd"
-      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-      clipRule="evenodd"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
   </svg>
 );
 
-const FeatureItem: React.FC<FeatureItemProps> = ({ text }) => (
-  <li className="flex items-center space-x-3">
-    <CheckmarkIcon />
-    <span className="text-gray-600">{text}</span>
-  </li>
-);
+// --- Main Page Component ---
+const PricingPage: React.FC = () => {
+  const [isAnnual, setIsAnnual] = useState(false); // State for monthly/annual toggle
 
-const PricingCard: React.FC<PricingPlanProps> = ({
-  name,
-  priceMonthly,
-  priceAnnually,
-  features,
-  buttonText,
-  isHighlighted = false,
-}) => {
-  const [isAnnual, setIsAnnual] = useState(false); // State to toggle between monthly/annually
-
-  const currentPrice = isAnnual ? priceAnnually : priceMonthly;
-  const pricePeriod = isAnnual ? '/year' : '/month';
-
-  const primaryBtnClass = "bg-blue-500 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
-  const secondaryBtnClass = "bg-teal-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50";
-
-  return (
-    <div
-      className={`flex flex-col p-6 rounded-xl shadow-lg transition-all duration-300 ${
-        isHighlighted ? 'bg-blue-500 text-white transform scale-105' : 'bg-white text-gray-800'
-      }`}
-    >
-      <h3
-        className={`text-2xl font-bold mb-2 ${
-          isHighlighted ? 'text-white' : 'text-gray-900'
-        }`}
-      >
-        {name}
-      </h3>
-      <p
-        className={`mb-4 ${
-          isHighlighted ? 'text-blue-100' : 'text-gray-500'
-        }`}
-      >
-        {name} plan description.
-      </p>
-      <div className="flex items-baseline mb-6">
-        <span
-          className={`text-5xl font-extrabold ${
-            isHighlighted ? 'text-white' : 'text-gray-900'
-          }`}
-        >
-          ${currentPrice}
-        </span>
-        <span
-          className={`text-xl font-medium ${
-            isHighlighted ? 'text-blue-200' : 'text-gray-500'
-          }`}
-        >
-          {pricePeriod}
-        </span>
-      </div>
-      <ul className="flex-grow space-y-3 mb-8">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center space-x-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 ${
-                isHighlighted ? 'text-white' : 'text-teal-400'
-              }`}
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span
-              className={`${isHighlighted ? 'text-blue-100' : 'text-gray-600'}`}
-            >
-              {feature}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={() => alert(`Selected ${name} Plan!`)}
-        className={isHighlighted ? secondaryBtnClass : primaryBtnClass}
-      >
-        {buttonText}
-      </button>
-    </div>
-  );
-};
-
-const Header: React.FC = () => (
-  <header className="bg-white shadow-sm py-4">
-    <div className="container mx-auto px-6 flex justify-between items-center">
-      <div className="text-2xl font-bold text-gray-900">
-        My<span className="text-blue-500">Service</span>
-      </div>
-      <nav className="hidden md:flex space-x-8">
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Features
-        </a>
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Pricing
-        </a>
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Docs
-        </a>
-        <a href="#" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">
-          Contact
-        </a>
-      </nav>
-      <button className="hidden md:block bg-blue-500 text-white font-semibold py-2 px-5 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-        Sign Up
-      </button>
-      <div className="md:hidden">
-        <button className="text-gray-600 hover:text-blue-500">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </header>
-);
-
-const PricingSection: React.FC = () => {
-  const [users, setUsers] = useState<number>(500); // Simulate user count slider
-
-  const pricingPlans: PricingPlanProps[] = [
+  const plans: PricingPlan[] = [
     {
+      id: 'basic',
       name: 'Basic',
-      priceMonthly: 19,
-      priceAnnually: 199,
-      features: ['10 Users', 'Basic Features', 'Email Support', '5GB Storage'],
-      buttonText: 'Get Started',
+      monthlyPrice: 19,
+      annualPrice: 199,
+      description: 'Perfect for small teams and individuals getting started.',
+      features: [
+        { id: 'f1', name: '5 Projects' },
+        { id: 'f2', name: '10 GB Storage' },
+        { id: 'f3', name: 'Basic Analytics' },
+        { id: 'f4', name: 'Email Support' },
+      ],
     },
     {
+      id: 'standard',
       name: 'Standard',
-      priceMonthly: 49,
-      priceAnnually: 499,
+      monthlyPrice: 49,
+      annualPrice: 499,
+      description: 'Ideal for growing businesses needing more power.',
       features: [
-        '50 Users',
-        'Advanced Features',
-        'Priority Email Support',
-        '50GB Storage',
-        'Custom Reports',
+        { id: 'f5', name: 'Unlimited Projects' },
+        { id: 'f6', name: '100 GB Storage' },
+        { id: 'f7', name: 'Advanced Analytics' },
+        { id: 'f8', name: 'Priority Email Support' },
+        { id: 'f9', name: 'Customizable Dashboards' },
       ],
-      buttonText: 'Get Started',
     },
     {
+      id: 'pro',
       name: 'Pro',
-      priceMonthly: 99,
-      priceAnnually: 999,
+      monthlyPrice: 99,
+      annualPrice: 999,
+      description: 'For power users and large teams with demanding needs.',
       features: [
-        'Unlimited Users',
-        'All Features',
-        '24/7 Phone & Email Support',
-        'Unlimited Storage',
-        'Dedicated Account Manager',
-        'API Access',
+        { id: 'f10', name: 'Unlimited Projects' },
+        { id: 'f11', name: '500 GB Storage' },
+        { id: 'f12', name: 'Real-time Analytics' },
+        { id: 'f13', name: '24/7 Phone & Email Support' },
+        { id: 'f14', name: 'Dedicated Account Manager' },
+        { id: 'f15', name: 'API Access' },
       ],
-      buttonText: 'Upgrade Now',
       isHighlighted: true,
     },
     {
+      id: 'enterprise',
       name: 'Enterprise',
-      priceMonthly: 299,
-      priceAnnually: 2999,
+      monthlyPrice: 249, // Placeholder, usually custom pricing
+      annualPrice: 2499, // Placeholder
+      description: 'Tailored solutions for large organizations.',
       features: [
-        'Custom Users',
-        'All Pro Features',
-        'SLA Guaranteed Support',
-        'On-premise Deployment',
-        'Single Sign-On (SSO)',
-        'Custom Integrations',
+        { id: 'f16', name: 'Custom Integrations' },
+        { id: 'f17', name: 'Unlimited Storage' },
+        { id: 'f18', name: 'On-premise Deployment' },
+        { id: 'f19', name: 'Dedicated Support Team' },
+        { id: 'f20', name: 'SLA Guarantee' },
+        { id: 'f21', name: 'Single Sign-On (SSO)' },
       ],
-      buttonText: 'Contact Sales',
     },
   ];
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-6 text-center">
-        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">
-          Simple, transparent pricing
-        </h2>
-        <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-          Choose the plan that's right for you and your team. Scale up or down
-          as your needs change.
-        </p>
-
-        {/* User Count Slider/Toggle */}
-        <div className="flex flex-col items-center mb-12">
-          <label htmlFor="user-count" className="text-lg font-medium text-gray-700 mb-2">
-            Users: {users}
-          </label>
-          <input
-            type="range"
-            id="user-count"
-            min="1"
-            max="1000"
-            step="1"
-            value={users}
-            onChange={(e) => setUsers(parseInt(e.target.value))}
-            className="w-full max-w-md h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg accent-blue-500"
-          />
-          <div className="flex justify-between w-full max-w-md text-sm text-gray-500 mt-2">
-            <span>1</span>
-            <span>1000+</span>
-          </div>
+    <div className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow-sm py-4 px-8 flex justify-between items-center z-10 sticky top-0">
+        <div className="flex items-center">
+          <a href="#" className="text-2xl font-bold text-gray-800">YourLogo</a>
+          <nav className="ml-10 hidden md:flex space-x-6">
+            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Features</a>
+            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Pricing</a>
+            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Contact</a>
+          </nav>
         </div>
-
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {pricingPlans.map((plan) => (
-            <PricingCard key={plan.name} {...plan} />
-          ))}
+        <div className="flex items-center space-x-4">
+          <button className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Sign In</button>
+          <button className="bg-blue-600 text-white py-2 px-5 rounded-md font-semibold hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-400">Sign Up</button>
         </div>
-      </div>
-    </section>
-  );
-};
+      </header>
 
-const NewsletterSection: React.FC = () => {
-  const [email, setEmail] = useState('');
+      {/* Main Content Area */}
+      <main className="flex-grow pt-16 pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Hero Section */}
+          <section className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 text-center leading-tight">
+              Choose the perfect plan for your business
+            </h1>
+            <p className="text-lg md:text-xl text-gray-600 text-center max-w-3xl mx-auto mt-4">
+              Simple, transparent pricing that scales with your needs. No hidden fees, cancel anytime.
+            </p>
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Subscribing with email: ${email}`);
-    setEmail('');
-  };
+            {/* Billing Toggle */}
+            <div className="flex justify-center mt-10">
+              <div
+                className="flex items-center space-x-4 bg-gray-100 p-2 rounded-full cursor-pointer"
+                onClick={() => setIsAnnual(!isAnnual)}
+              >
+                <span
+                  className={`py-2 px-6 rounded-full text-sm font-semibold transition-colors duration-300 ${
+                    !isAnnual ? 'bg-blue-600 text-white shadow' : 'text-gray-700'
+                  }`}
+                >
+                  Monthly Billing
+                </span>
+                <span
+                  className={`py-2 px-6 rounded-full text-sm font-semibold transition-colors duration-300 ${
+                    isAnnual ? 'bg-blue-600 text-white shadow' : 'text-gray-700'
+                  }`}
+                >
+                  Annual Billing
+                </span>
+                {isAnnual && (
+                  <span className="absolute ml-64 -mt-10 bg-yellow-400 text-yellow-900 text-xs font-bold py-1 px-2 rounded-full transform rotate-3 -translate-y-2">
+                    Save 10%!
+                  </span>
+                )}
+              </div>
+            </div>
+          </section>
 
-  return (
-    <section className="bg-blue-500 py-16">
-      <div className="container mx-auto px-6 text-center">
-        <span className="inline-block bg-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
-          Newsletter
-        </span>
-        <h2 className="text-4xl font-extrabold text-white mb-4">
-          Stay up to date
-        </h2>
-        <p className="text-xl text-blue-100 mb-8 max-w-xl mx-auto">
-          Join our newsletter to get the latest features, updates, and news on
-          our product.
-        </p>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full sm:w-80 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button
-            type="submit"
-            className="bg-teal-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50 w-full sm:w-auto"
-          >
-            Subscribe
-          </button>
-        </form>
-      </div>
-    </section>
-  );
-};
-
-// --- Main Page Component ---
-
-const Home: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-white font-sans antialiased">
-      <Header />
-      <main>
-        <PricingSection />
-        <NewsletterSection />
+          {/* Pricing Cards */}
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={
+                  plan.isHighlighted
+                    ? 'bg-blue-600 text-white p-8 md:p-10 rounded-xl shadow-xl border-2 border-blue-800 scale-105 transform transition-transform duration-300 ease-in-out relative flex flex-col justify-between'
+                    : 'bg-white p-6 md:p-8 rounded-xl shadow-md border border-gray-200 text-center flex flex-col justify-between'
+                }
+              >
+                {plan.isHighlighted && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-800 text-white text-xs font-bold py-1.5 px-4 rounded-full shadow-lg">
+                    Most Popular
+                  </div>
+                )}
+                <div className="mb-8 flex-grow">
+                  <h3
+                    className={`text-2xl font-bold mb-2 ${
+                      plan.isHighlighted ? 'text-white' : 'text-gray-800'
+                    }`}
+                  >
+                    {plan.name}
+                  </h3>
+                  <p
+                    className={`text-sm mb-6 ${
+                      plan.isHighlighted ? 'text-blue-100' : 'text-gray-600'
+                    }`}
+                  >
+                    {plan.description}
+                  </p>
+                  <div className="flex items-baseline justify-center mb-8">
+                    <span
+                      className={`text-5xl font-extrabold ${
+                        plan.isHighlighted ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                    </span>
+                    <span
+                      className={`text-xl font-medium ${
+                        plan.isHighlighted ? 'text-blue-100' : 'text-gray-600'
+                      }`}
+                    >
+                      /{isAnnual ? 'year' : 'month'}
+                    </span>
+                  </div>
+                  <ul className={`text-left space-y-3 ${plan.isHighlighted ? 'text-blue-100' : 'text-gray-700'}`}>
+                    {plan.features.map((feature) => (
+                      <li key={feature.id}>
+                        <CheckmarkIcon /> {feature.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-auto">
+                  {plan.isHighlighted ? (
+                    <button className="bg-white text-blue-600 py-3 px-6 rounded-md font-semibold hover:bg-blue-50 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-white">
+                      Get Started
+                    </button>
+                  ) : plan.id === 'enterprise' ? (
+                    <button className="bg-teal-500 text-white py-3 px-6 rounded-md font-semibold hover:opacity-90 transition-opacity w-full focus:outline-none focus:ring-2 focus:ring-teal-300">
+                      Contact Sales
+                    </button>
+                  ) : (
+                    <button className="bg-blue-600 text-white py-3 px-6 rounded-md font-semibold hover:opacity-90 transition-opacity w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                      Choose Plan
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </section>
+        </div>
       </main>
-      {/* Optional: Add a simple footer */}
-      <footer className="bg-gray-800 text-white py-8 text-center">
-        <div className="container mx-auto px-6">
-          <p>&copy; {new Date().getFullYear()} MyService. All rights reserved.</p>
-          <div className="flex justify-center space-x-4 mt-4">
-            <a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a>
-            <a href="#" className="text-gray-400 hover:text-white">Terms of Service</a>
-          </div>
+
+      {/* Newsletter Section */}
+      <section className="bg-blue-600 text-white py-16 px-8 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
+            Stay Updated with Our Newsletter
+          </h2>
+          <p className="text-lg mb-8 opacity-90">
+            Join thousands of professionals and get the latest updates, tips, and exclusive offers directly to your inbox.
+          </p>
+          <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="border border-gray-300 p-3 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-teal-500 text-white py-3 px-6 rounded-md font-semibold hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-teal-300 flex-shrink-0"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Basic Footer (Optional, but good for completeness) */}
+      <footer className="bg-gray-800 text-gray-400 py-8 px-8 text-center text-sm">
+        <p>&copy; {new Date().getFullYear()} YourCompany. All rights reserved.</p>
+        <div className="mt-2 space-x-4">
+          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
         </div>
       </footer>
     </div>
   );
 };
 
-export default Home;
+export default PricingPage;
